@@ -3,6 +3,7 @@ import pickle
 from typing import List, Optional, Any
 from langchain_chroma import Chroma
 from langchain_classic.storage import LocalFileStore
+from langchain.storage import InMemoryStore
 # from langchain.retrievers import ParentDocumentRetriever # Removed standard import
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_classic.chains import RetrievalQA
@@ -127,8 +128,8 @@ class RAGEngine:
                     print(f"❌ Error loading DocStore pickle: {e}")
                     self._store = None 
             else:
-                print(f"⚠️ DocStore pickle not found at {pkl_path}")
-                self._store = None
+                print(f"⚠️ DocStore pickle not found at {pkl_path}. Creating new empty store.")
+                self._store = InMemoryStore()
         return self._store
 
     @property
@@ -180,7 +181,20 @@ class RAGEngine:
             return False
 
     def ingest_all_data(self):
-        pass
+        """
+        Iterates over all files in the data folder and ingests them.
+        """
+        if not os.path.exists(Config.DATA_PATH):
+            print(f"⚠️ Data path {Config.DATA_PATH} does not exist.")
+            return
+
+        print(f"🔄 Starting Re-Index of folder: {Config.DATA_PATH}")
+        files = os.listdir(Config.DATA_PATH)
+        for f in files:
+            file_path = os.path.join(Config.DATA_PATH, f)
+            if os.path.isfile(file_path):
+                self.ingest_file(file_path)
+        print("✅ Re-Index Complete.")
 
     def get_qa_chain(self):
         llm = Config.get_llm()
