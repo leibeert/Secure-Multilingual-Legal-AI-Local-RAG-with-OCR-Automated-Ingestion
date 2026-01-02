@@ -43,11 +43,20 @@ class Config:
     @staticmethod
     def get_llm():
         """
-        Returns the LLM (Ollama - qwen2.5:14b).
+        Returns the LLM (Ollama).
+        Reads connection settings from environment variables.
+        Defaults to:
+          - URL: http://localhost:11434
+          - Model: qwen2.5:14b
         """
-        print("🏠 Using Local LLM (Ollama - qwen2.5:14b)...")
+        ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        ollama_model = os.getenv("OLLAMA_MODEL", "qwen2.5:14b")
+        
+        print(f"🏠 Using Local LLM (Ollama) at {ollama_url} with model {ollama_model}...")
+        
         return ChatOllama(
-            model="qwen2.5:14b",
+            base_url=ollama_url,
+            model=ollama_model,
             temperature=0.0,
             # Stop words to prevent infinite Arabic loops
             stop=["<|eot_id|>", "<|end_of_text|>", "<|im_end|>"]
